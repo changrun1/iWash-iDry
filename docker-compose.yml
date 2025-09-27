@@ -1,0 +1,70 @@
+version: '3.9'
+
+services:
+  backend:
+    build: ./server
+    container_name: iwash-backend
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:8080}
+      ALLOWED_ORIGIN_PATTERNS: ${ALLOWED_ORIGIN_PATTERNS:-}
+      CLIENT_BASE_URL: ${CLIENT_BASE_URL:-http://localhost:8080}
+      HARDWARE_API_KEY: ${HARDWARE_API_KEY:-hardware-demo-key}
+      JWT_SECRET: ${JWT_SECRET:-change-me}
+      LINE_CHANNEL_ID: ${LINE_CHANNEL_ID:-}
+      LINE_CHANNEL_SECRET: ${LINE_CHANNEL_SECRET:-}
+      LINE_CHANNEL_ACCESS_TOKEN: ${LINE_CHANNEL_ACCESS_TOKEN:-}
+      LINE_BOT_BASIC_ID: ${LINE_BOT_BASIC_ID:-}
+      TUNNEL_URL: ${TUNNEL_URL:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+    volumes:
+      - ./server/data:/server/data
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./app
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_LINE_BOT_ID: ${VITE_LINE_BOT_ID:-}
+    container_name: iwash-frontend
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+      VITE_LINE_BOT_ID: ${VITE_LINE_BOT_ID:-}
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+  simulator:
+    build: ./hardware/simulation
+    container_name: iwash-simulator
+    environment:
+      SIMULATOR_SERVER_URL: ${SIMULATOR_SERVER_URL:-http://backend:3000}
+      HARDWARE_API_KEY: ${HARDWARE_API_KEY:-hardware-demo-key}
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  tunnel:
+    image: node:20-alpine
+    container_name: iwash-tunnel
+    working_dir: /tunnel
+    entrypoint: ["sh", "-c"]
+    command: >
+      ARGS=""; if [ -n "$${TUNNEL_SUBDOMAIN}" ]; then ARGS="--subdomain $${TUNNEL_SUBDOMAIN}"; fi; npx --yes localtunnel --port 3000 $${ARGS}
+    environment:
+      TUNNEL_SUBDOMAIN: ${TUNNEL_SUBDOMAIN:-}
+    depends_on:
+      backend:
+        condition: service_healthy
+    profiles: ["tunnel"]

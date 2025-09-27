@@ -1,0 +1,24 @@
+{
+  "name": "washing-machine-booking-system",
+  "version": "1.0.0",
+  "description": "校園自助洗衣機線上預約系統",
+  "main": "server/app.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "cd server && npm run dev",
+    "client:dev": "cd app && npm run dev",
+    "install:all": "npm install && cd server && npm install && cd ../app && npm install",
+    "build": "cd app && npm run build",
+    "start": "cd server && npm start",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "keywords": ["washing-machine", "booking", "campus", "vue", "express"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

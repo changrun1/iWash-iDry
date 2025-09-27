@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LINE 帳號綁定 - 校園洗衣機預約系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: #00C300;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+        
+        .status {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+        
+        .status.loading {
+            background: #e1f5fe;
+            color: #0277bd;
+        }
+        
+        .status.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .input-group {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .link-btn {
+            background: #00C300;
+            text-decoration: none;
+            display: inline-block;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        
+        .link-btn:hover {
+            background: #00a300;
+        }
+        
+        .help-text {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-top: 24px;
+        }
+        
+        .help-text a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .user-info {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+        
+        .user-info h3 {
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .user-info p {
+            color: #666;
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">LINE</div>
+        <h1>LINE 帳號綁定</h1>
+        <p class="subtitle">綁定您的 LINE 帳號以接收洗衣完成通知</p>
+        
+        <div id="status" class="status loading">
+            正在載入...
+        </div>
+        
+        <div id="loginForm" style="display: none;">
+            <div class="input-group">
+                <label for="studentId">學生證號</label>
+                <input type="text" id="studentId" placeholder="請輸入學生證號" maxlength="20">
+            </div>
+            
+            <div class="input-group">
+                <label for="password">密碼</label>
+                <input type="password" id="password" placeholder="請輸入密碼">
+            </div>
+            
+            <button class="btn" onclick="login()">登入並綁定</button>
+        </div>
+        
+        <div id="userInfo" style="display: none;">
+            <div class="user-info">
+                <h3>用戶資訊</h3>
+                <p><strong>姓名:</strong> <span id="userName"></span></p>
+                <p><strong>學號:</strong> <span id="userStudentId"></span></p>
+            </div>
+            
+            <button class="btn" onclick="bindAccount()">確認綁定 LINE 帳號</button>
+        </div>
+        
+        <div id="successMessage" style="display: none;">
+            <div class="status success">
+                ✅ LINE 帳號綁定成功！
+            </div>
+            <a href="http://localhost:5174/dashboard" class="link-btn">前往洗衣預約系統</a>
+        </div>
+        
+        <div class="help-text">
+            <p>透過綁定 LINE 帳號，您將可以:</p>
+            <ul style="text-align: left; margin-top: 12px;">
+                <li>接收洗衣完成通知</li>
+                <li>查看預約狀態</li>
+                <li>快速進行預約操作</li>
+            </ul>
+            
+            <p style="margin-top: 16px;">
+                如有問題，請聯絡 <a href="mailto:support@nchu.edu.tw">技術支援</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // 從URL獲取LINE User ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const lineUserId = urlParams.get('userId');
+        let authToken = null;
+        let userInfo = null;
+
+        // 初始化頁面
+        async function init() {
+            const statusEl = document.getElementById('status');
+            
+            if (!lineUserId) {
+                statusEl.textContent = '❌ 缺少 LINE User ID 參數';
+                statusEl.className = 'status error';
+                return;
+            }
+            
+            statusEl.textContent = '✅ 準備綁定 LINE 帳號';
+            statusEl.className = 'status success';
+            
+            // 顯示登入表單
+            document.getElementById('loginForm').style.display = 'block';
+        }
+
+        // 用戶登入
+        async function login() {
+            const studentId = document.getElementById('studentId').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const statusEl = document.getElementById('status');
+            
+            if (!studentId || !password) {
+                statusEl.textContent = '請填寫學號和密碼';
+                statusEl.className = 'status error';
+                return;
+            }
+            
+            statusEl.textContent = '正在登入...';
+            statusEl.className = 'status loading';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        student_id: studentId,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    userInfo = data.user;
+                    
+                    statusEl.textContent = '登入成功';
+                    statusEl.className = 'status success';
+                    
+                    // 顯示用戶資訊
+                    document.getElementById('userName').textContent = userInfo.name;
+                    document.getElementById('userStudentId').textContent = userInfo.student_id;
+                    
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('userInfo').style.display = 'block';
+                } else {
+                    statusEl.textContent = data.message || '登入失敗';
+                    statusEl.className = 'status error';
+                }
+            } catch (error) {
+                console.error('登入錯誤:', error);
+                statusEl.textContent = '登入失敗，請稍後再試';
+                statusEl.className = 'status error';
+            }
+        }
+
+        // 綁定LINE帳號
+        async function bindAccount() {
+            const statusEl = document.getElementById('status');
+            
+            statusEl.textContent = '正在綁定 LINE 帳號...';
+            statusEl.className = 'status loading';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/line/bind', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        line_user_id: lineUserId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusEl.textContent = 'LINE 帳號綁定成功！';
+                    statusEl.className = 'status success';
+                    
+                    document.getElementById('userInfo').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
+                } else {
+                    statusEl.textContent = data.message || 'LINE 帳號綁定失敗';
+                    statusEl.className = 'status error';
+                }
+            } catch (error) {
+                console.error('綁定錯誤:', error);
+                statusEl.textContent = 'LINE 帳號綁定失敗，請稍後再試';
+                statusEl.className = 'status error';
+            }
+        }
+
+        // 頁面載入完成後初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
