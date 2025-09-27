@@ -44,6 +44,7 @@
 	- `VITE_LINE_BOT_ID`：前端顯示的 LINE Bot ID（若未設定，前端僅顯示「未設定」）。
 	- `SIMULATOR_SERVER_URL`：硬體模擬器回報的後端 API URL，Docker 預設 `http://backend:3000`。
 	- `TUNNEL_SUBDOMAIN`：localtunnel 指定子網域（選填，需要 `docker compose --profile tunnel ...`）。
+	- `TUNNEL_URL`：手動或自動填入 localtunnel 產生的公開 URL，方便後端與前端顯示給使用者參考。
 	- `BACKEND_PORT` / `FRONTEND_PORT`：對外映射的埠號。
 
 ## 使用 Docker 快速啟動
@@ -69,7 +70,7 @@
 ### Docker 注意事項
 - 後端使用 SQLite，`./server/data` 會以 bind mount 方式保存資料。
 - 模擬器容器預設以 `start_all_dormitories.py --auto` 啟動全部宿舍，可透過環境變數覆寫。
-- localtunnel 只在啟用 `tunnel` profile 時下載並啟動。
+- localtunnel 只在啟用 `tunnel` profile 時下載並啟動，僅用於 LINE Webhook 導流。
 
 ## 本機開發模式（不使用 Docker）
 
@@ -115,9 +116,11 @@
 - `start_all_dormitories.py` 支援互動或 `--auto` 模式，並可透過 `SIMULATOR_CLIENT_URL` 指定前端網址（顯示於提示中）。
 
 ### 隧道服務（localtunnel）
-- Docker 版在 `tunnel` profile 中以 `node:20-alpine` 立即執行 `npx localtunnel`。
+- Docker 版在 `tunnel` profile 中以 `node:20-alpine` 啟動 `npx localtunnel`，僅暴露 `LINE /line/webhook` 用途。
 - 若需固定子網域，請在 `.env` 中設定 `TUNNEL_SUBDOMAIN`。
-- 啟動後請至 `iwash-tunnel` 容器日誌取得公開網址，並手動填入 `.env` 的 `TUNNEL_URL` 供後端紀錄與顯示。
+- 啟動後請查看 `iwash-tunnel` 容器輸出的提示訊息，可直接複製公開網址。請將該網址：
+	1. 設定至 LINE Developers Console 的 Webhook URL（例如 `https://xxxxx.loca.lt/line/webhook`）。
+	2. 填入 `.env` 的 `TUNNEL_URL`，讓後端記錄目前的公開位址。
 
 ## 常用指令
 

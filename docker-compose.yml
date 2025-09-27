@@ -59,9 +59,28 @@ services:
     image: node:20-alpine
     container_name: iwash-tunnel
     working_dir: /tunnel
-    entrypoint: ["sh", "-c"]
-    command: >
-      ARGS=""; if [ -n "$${TUNNEL_SUBDOMAIN}" ]; then ARGS="--subdomain $${TUNNEL_SUBDOMAIN}"; fi; npx --yes localtunnel --port 3000 $${ARGS}
+    command:
+      - sh
+      - -c
+      - |
+        cat <<'EOT'
+        ---------------------------------------------------------
+        🌐 LocalTunnel for LINE Webhook is starting...
+        使用方式：
+          1. 等待下方顯示的 public URL。
+          2. 將該 URL 填入 LINE Developers 的 Webhook URL，範例：
+               https://xxxxx.loca.lt/line/webhook
+          3. 將環境變數 TUNNEL_URL 設成相同網址（含 https://），方便後端對外公告目前可使用的公開位址。
+        ---------------------------------------------------------
+        EOT
+
+        ARGS=""
+        if [ -n "$${TUNNEL_SUBDOMAIN}" ]; then
+          ARGS="--subdomain $${TUNNEL_SUBDOMAIN}"
+        fi
+
+        printf "👉 正在連線到 backend:3000，請稍候...\n"
+        exec npx --yes localtunnel --port 3000 $${ARGS}
     environment:
       TUNNEL_SUBDOMAIN: ${TUNNEL_SUBDOMAIN:-}
     depends_on:
